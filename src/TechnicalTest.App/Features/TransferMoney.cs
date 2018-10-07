@@ -7,12 +7,10 @@ namespace TechnicalTest.App.Features
     public class TransferMoney
     {
         private IAccountRepository accountRepository;
-        private INotificationService notificationService;
 
-        public TransferMoney(IAccountRepository accountRepository, INotificationService notificationService)
+        public TransferMoney(IAccountRepository accountRepository)
         {
             this.accountRepository = accountRepository;
-            this.notificationService = notificationService;
         }
 
         public void Execute(Guid fromAccountId, Guid toAccountId, decimal amount)
@@ -20,36 +18,27 @@ namespace TechnicalTest.App.Features
             var from = this.accountRepository.GetAccountById(fromAccountId);
             var to = this.accountRepository.GetAccountById(toAccountId);
 
-            var fromBalance = from.Balance - amount;
-            if (fromBalance < 0m)
+            try
             {
-                throw new InvalidOperationException("Insufficient funds to make transfer");
+                from.WithdrawMoney(amount);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine("Detailed explanaion of the exception to be logged here: {0}", ex.Message);
+                throw;
+            }
+            try
+            {
+                to.PayMoney(amount);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine("Detailed explanaion of the exception to be logged here: {0}", ex.Message);
+                throw;
             }
 
-            if (fromBalance < 500m)
-            {
-                this.notificationService.NotifyFundsLow(from.User.Email);
-            }
-
-            var paidIn = to.PaidIn + amount;
-            if (paidIn > Account.PayInLimit)
-            {
-                throw new InvalidOperationException("Account pay in limit reached");
-            }
-
-            if (Account.PayInLimit - paidIn < 500m)
-            {
-                this.notificationService.NotifyApproachingPayInLimit(to.User.Email);
-            }
-
-            from.Balance = from.Balance - amount;
-            from.Withdrawn = from.Withdrawn - amount;
-
-            to.Balance = to.Balance + amount;
-            to.PaidIn = to.PaidIn + amount;
-
-            this.accountRepository.Update(from);
-            this.accountRepository.Update(to);
+            accountRepository.Update(from);
+            accountRepository.Update(to);
         }
     }
 }

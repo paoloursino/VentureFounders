@@ -7,17 +7,26 @@ namespace TechnicalTest.App.Features
     public class WithdrawMoney
     {
         private IAccountRepository accountRepository;
-        private INotificationService notificationService;
 
-        public WithdrawMoney(IAccountRepository accountRepository, INotificationService notificationService)
+        public WithdrawMoney(IAccountRepository accountRepository)
         {
             this.accountRepository = accountRepository;
-            this.notificationService = notificationService;
         }
 
         public void Execute(Guid fromAccountId, decimal amount)
         {
-            // TODO:
+            var from = this.accountRepository.GetAccountById(fromAccountId);
+
+            try
+            {
+                from.WithdrawMoney(amount);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine("Detailed explanaion of the exception to be logged here: {0}", ex.Message);
+                throw;
+            }
+            this.accountRepository.Update(from);
         }
     }
 }
