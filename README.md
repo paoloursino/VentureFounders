@@ -27,7 +27,7 @@ Let us know if you have any questions or problems.
 Good luck!
 
 ## Solution
-The task consists in moving ome of the functionality of Withdraw/Execute into the Account class, which can better and more securely handle requests. Additionally, in order to avoid potential misuse, the some of the Account attribute are now private. 
+The task consists in moving some of the functionality of Withdraw/Execute into the Account class, which can better and more securely handle requests. It was also requested to make the overall code more secure and prevent potential misuse.
 
 Even if the task is simple, there are various options and choices to make. This is what I decided to do:
 
@@ -40,15 +40,15 @@ Even if the task is simple, there are various options and choices to make. This 
 4. TransferMoney and WithdrawMoney Execute functions: these are now very simple
 
 In order to do some minimal unit tests, I created a separate test project. The INotificationService and IAccountRepository interfaces need some implementation. In a real case, these would be most likely external services/libraries, injected via Dependency Injection. Here, for the purpose of running some simple tests quickly, I manually provided a trivial implementation and manual binding in the Unit Test module. 
-I created only a couple of basic tests but it should be self evident it is easy to implement proper and full tests.   
+I created just a couple of basic tests, please note that the implementation of the repository is really not there, it would have requested just a bit more time to do something suitable for the tests. However, it should be self evident how it is possible to implement further tests.
 
 Some notes on the current code:
 
-*When paying money into an account the paidIn property is incremented by the amount paid in. Therefore, paidIn is an accumulator; it is the sum of all money paid into the account since creation. Inevitably, later on, it will be impossible to pay in money to that account: when the test 'paidIn' + 'amount' exceeds the 'paidInLimit' an exception is thrown. And similar issue for the paid amount close to the limit, in this case a notification is sent. This didn't seem correct to me: wWhy would it be a problem for an account to receive many successive amounts? In time any account would be unable to receive money. Maybe the intention was to limit the amount paid in to a certain amount, but within a time window?
+-When paying money into an account the paidIn property is incremented by the amount paid in. Therefore, paidIn is an accumulator; it is the sum of all money paid into the account since creation. Inevitably, later on, it will be impossible to pay in money to that account: when the test 'paidIn' + 'amount' exceeds the 'paidInLimit' an exception is thrown. And similar issue for the paid amount close to the limit, in this case a notification is sent. This didn't seem correct to me: wWhy would it be a problem for an account to receive many successive amounts? In time any account would be unable to receive money. Maybe the intention was to limit the amount paid in to a certain amount, but within a time window?
 
-*The 'withdrawn' property is similar to 'paidIn', it decrements according to the amount withdrawn. However, there is no test on this amount when withdrawing in the original code, so the problem above wouldn't occur. Also, in my view it would be more logical for 'withdrawn' to increment, not decrement, when a certain amount is withdrawn. It would be an accumulator (positive) showing the total amount withdrawn.
+-The 'withdrawn' property is similar to 'paidIn', it decrements according to the amount withdrawn. However, there is no test on this amount when withdrawing in the original code, so the problem above wouldn't occur. Also, in my view it would be more logical for 'withdrawn' to increment, not decrement, when a certain amount is withdrawn. It would be an accumulator (positive) showing the total amount withdrawn.
 
-* If a newly created account has 'balance' == 'paidIn' == 'withdrawn' == 0, when created, then at any later time the condition 'balance' == 'paidIn' - 'withdrawn' (assuming 'withdrawn' is positive) must be true. And this could be tested with a check() method, which could assert, or send other notifications, when called.
+-If a newly created account has 'balance' == 'paidIn' == 'withdrawn' == 0, when created, then at any later time the condition 'balance' == 'paidIn' - 'withdrawn' (assuming 'withdrawn' is positive) must be true. And this could be tested with a check() method, which could assert, or send other notifications, when called.
 
 I didn't do the code changes to implement/correct the above points. 
 
